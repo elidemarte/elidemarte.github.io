@@ -1,0 +1,54 @@
+---
+import { getCollection } from 'astro:content';
+const posts = await getCollection('blog');
+const sortedPosts = posts.sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+---
+
+<section id="blog" class="blog">
+    <div class="container">
+      <div class="section-header">
+        <h2>Blog</h2>
+        <p>Thoughts, tutorials, and insights</p>
+      </div>
+      <div class="blog-grid">
+        {sortedPosts.map(post => (
+          <div class="blog-card">
+            <div class="blog-date">{post.data.date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+            <h3>{post.data.title}</h3>
+            <p>{post.data.excerpt}</p>
+            <a href={`/blog/${post.slug}`} class="read-more">Read More <i class="fa-solid fa-arrow-right"></i></a>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+  
+
+
+4. **Create Blog Post Template**
+Create `src/pages/blog/[...slug].astro`:
+    
+    ```jsx
+    ---
+    import { getCollection } from 'astro:content';
+    import Layout from '../../layouts/Layout.astro';
+    
+    // Generate paths for all blog posts
+    export async function getStaticPaths() {
+      const blogEntries = await getCollection('blog');
+      return blogEntries.map(post => ({
+        params: { slug: entry.slug },
+        props: { post },
+      }));
+    }
+    
+    // Get the blog post content
+    const { post } = Astro.props;
+    // Markdown is text, so we need to "render" it to transform it into HTML
+    const { Content } = await post.render();
+    // can always spruce up this template more if there's time
+    ---
+    
+    <Layout>
+    	<Content />
+    </Layout>
